@@ -9,12 +9,12 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(VertxExtension.class)
-public class TestMainVerticle {
+public class TestHttpVerticle {
     @Test
     void httpServerRunnable() throws Throwable {
         VertxTestContext testContext = new VertxTestContext();
         Vertx vertx = Vertx.vertx();
-        vertx.deployVerticle(new MainVerticle(), testContext.completing());
+        vertx.deployVerticle(new HttpVerticle(), testContext.completing());
 
         assertThat(testContext.awaitCompletion(5, TimeUnit.SECONDS)).isTrue();
         if (testContext.failed()) {

@@ -19,7 +19,7 @@
     <vertx.version>3.9.4</vertx.version>
     <!-- junit-jupiter.version>5.4.0</junit-jupiter.version -->
 
-    <main.verticle>com.example.demo.MainVerticle</main.verticle>
+    <main.verticle>com.example.demo.HttpVerticle</main.verticle>
   </properties>
 
   <dependencyManagement>
