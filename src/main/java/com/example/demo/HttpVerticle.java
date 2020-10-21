@@ -15,6 +15,10 @@ import java.util.regex.Pattern;
 
 public class HttpVerticle extends AbstractVerticle {
   final static String AUTH_FAILED_MSG = "You have not provided an authentication token, the one provided has expired, was revoked or is not authentic";
+  final static String LOGIN_FAILED_MSG = "Login failed";
+  final static String REGISTRATION_SUCCESS_MSG = "Registering successfull";
+  final static String CREATION_SUCCESS = "Item created successfull";
+
   final Map<String, User> users = new HashMap<>();
   final Map<String, List<Item>> items = new HashMap<>();
 
@@ -31,7 +35,7 @@ public class HttpVerticle extends AbstractVerticle {
       // NOTE: api extended with login failure response
       routingContext.response()
         .setStatusCode(401)
-        .setStatusMessage("Login failed")
+        .setStatusMessage(LOGIN_FAILED_MSG)
         .end();
     }
   }
@@ -43,7 +47,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     routingContext.response()
       .setStatusCode(204)
-      .setStatusMessage("Registering successfull")
+      .setStatusMessage(REGISTRATION_SUCCESS_MSG)
       .end();
   }
 
@@ -79,7 +83,7 @@ public class HttpVerticle extends AbstractVerticle {
 
       routingContext.response()
         .setStatusCode(204)
-        .setStatusMessage("Item created successfull")
+        .setStatusMessage(CREATION_SUCCESS)
         .end();
     } else {
       routingContext.response()

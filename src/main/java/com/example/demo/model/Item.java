@@ -19,23 +19,26 @@ public class Item {
     return id;
   }
 
-  public void setId(String id) {
+  public Item setId(String id) {
     this.id = id;
+    return this;
   }
 
   public String getOwner() {
     return owner;
   }
 
-  public void setOwner(String owner) {
+  public Item setOwner(String owner) {
     this.owner = owner;
+    return this;
   }
 
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public Item setName(String name) {
     this.name = name;
+    return this;
   }
 }
