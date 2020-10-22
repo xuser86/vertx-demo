@@ -47,20 +47,11 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("login", "user1@domain.com")
           .put("password", "SomePassword1"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            // NOTE: probably cleaner checking method exists - now working method used
-            try {
-              assertThat(response.statusCode()).isEqualTo(204);
-              testContext.completeNow();
-            } catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(204);
+          testContext.completeNow();
+        }))
+      );
   }
 
   @Test
@@ -73,19 +64,11 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("login", "user2@domain.com")
           .put("password", "Password2"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(204);
-              testContext.completeNow();
-            } catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(204);
+          testContext.completeNow();
+        }))
+      );
   }
 
   @Test
@@ -98,19 +81,11 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("login", "test")
           .put("password", "test"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(401);
-              testContext.completeNow();
-            } catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(401);
+          testContext.completeNow();
+        }))
+      );
   }
 
   @Test
@@ -184,19 +159,10 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("owner", "Owner #1")
           .put("name", "Name #1"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(401);
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(401);
+          testContext.completeNow();
+        })));
   }
 
   // NOTE: supplying items from list should simplify code - now working method used
@@ -211,19 +177,11 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("owner", "Owner #1")
           .put("name", "Name #1"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(204);
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(204);
+          testContext.completeNow();
+        }))
+      );
   }
 
   @Test
@@ -237,19 +195,10 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("owner", "Owner #1")
           .put("name", "Name #2"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(204);
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(204);
+          testContext.completeNow();
+        })));
   }
 
   @Test
@@ -263,19 +212,10 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("owner", "Owner #2")
           .put("name", "Name #3"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(204);
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(204);
+          testContext.completeNow();
+        })));
   }
 
   @Test
@@ -286,24 +226,10 @@ public class TestHttpVerticle {
     client
       .get(port, "localhost", "/items")
       .putHeader("Authorization", "Bearer " + token1)
-      .send(
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              //JsonObject body = response.bodyAsJsonObject();
-              assertThat(response.statusCode()).isEqualTo(200);
-
-              // validate returned content
-
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+      .send(testContext.succeeding(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(200);
+        testContext.completeNow();
+      })));
   }
 
   @Test
@@ -314,24 +240,10 @@ public class TestHttpVerticle {
     client
       .get(port, "localhost", "/items")
       .putHeader("Authorization", "Bearer " + token2)
-      .send(
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              //JsonObject body = response.bodyAsJsonObject();
-              assertThat(response.statusCode()).isEqualTo(200);
-
-              // validate returned content
-
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+      .send(testContext.succeeding(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(200);
+        testContext.completeNow();
+      })));
   }
 
   @Test
@@ -342,20 +254,10 @@ public class TestHttpVerticle {
     client
       .get(port, "localhost", "/items")
       .putHeader("Authorization", "Bearer dfhgr56u56")
-      .send(
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              assertThat(response.statusCode()).isEqualTo(401);
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+      .send(testContext.succeeding(response -> testContext.verify(() -> {
+        assertThat(response.statusCode()).isEqualTo(401);
+        testContext.completeNow();
+      })));
   }
 
   @AfterAll

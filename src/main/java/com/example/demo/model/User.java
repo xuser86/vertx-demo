@@ -23,6 +23,19 @@ public class User {
     this.password = json.getString("password");
   }
 
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+
+    json.put("login", this.login);
+    json.put("password", this.password);
+
+    if (this.id != null) {
+      json.put("_id", this.id);
+    }
+
+    return json;
+  }
+
   public String getId() {
     return id;
   }

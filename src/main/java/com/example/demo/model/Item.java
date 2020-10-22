@@ -15,6 +15,19 @@ public class Item {
     this.name = json.getString("name");
   }
 
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+
+    json.put("owner", this.owner);
+    json.put("name", this.name);
+
+    if (this.id != null) {
+      json.put("_id", this.id);
+    }
+
+    return json;
+  }
+
   public String getId() {
     return id;
   }
