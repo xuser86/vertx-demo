@@ -14,6 +14,7 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.time.Duration;
 import java.util.Date;
@@ -32,7 +33,7 @@ public class HttpVerticle extends AbstractVerticle {
     final User reqUser = new User(routingContext.getBodyAsJson());
     final JsonObject query = new JsonObject()
       .put("login", reqUser.getLogin())
-      .put("password", reqUser.getPassword());
+      .put("password", DigestUtils.sha256Hex(reqUser.getPassword()));
 
     mongo.findOne("users", query, null, res -> {
       if (res.succeeded()) {
@@ -71,6 +72,7 @@ public class HttpVerticle extends AbstractVerticle {
 
   private void register(RoutingContext routingContext) {
     final User reqUser = new User(routingContext.getBodyAsJson());
+    reqUser.setPassword(DigestUtils.sha256Hex(reqUser.getPassword()));
 
     mongo.insert("users", reqUser.toJson(), res -> {
       if (res.succeeded()) {
