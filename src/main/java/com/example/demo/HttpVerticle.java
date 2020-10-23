@@ -1,5 +1,9 @@
 package com.example.demo;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.demo.model.Item;
 import com.example.demo.model.User;
 import io.vertx.core.AbstractVerticle;
@@ -11,8 +15,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.Duration;
+import java.util.Date;
 
 public class HttpVerticle extends AbstractVerticle {
   final static String AUTH_FAILED_MSG = "You have not provided an authentication token, the one provided has expired, was revoked or is not authentic";
@@ -21,6 +25,8 @@ public class HttpVerticle extends AbstractVerticle {
   final static String CREATION_SUCCESS = "Item created successfull";
 
   private MongoClient mongo;
+  private Algorithm algorithmHS = Algorithm.HMAC256("4ydr0g3n");
+  private JWTVerifier verifier = JWT.require(algorithmHS).acceptLeeway(1).build();
 
   private void login(RoutingContext routingContext) {
     final User reqUser = new User(routingContext.getBodyAsJson());
@@ -37,12 +43,18 @@ public class HttpVerticle extends AbstractVerticle {
             .end();
         } else {
           User dbUser = new User(res.result());
+          String token = JWT.create()
+            .withClaim("preferred_username", dbUser.getLogin())
+            .withClaim("user_id", dbUser.getId())
+            .withExpiresAt(Date.from(new Date().toInstant().plus(Duration.ofMinutes(5))))
+            .sign(algorithmHS);
+
           routingContext.response()
             .setStatusCode(200)
             .putHeader("content-type", "application/json; charset=utf-8")
             .end(
               new JsonObject()
-                .put("token", "TesT." + dbUser.getId() + ".TesT")
+                .put("token", token)
                 .toString()
             );
         }
@@ -74,16 +86,19 @@ public class HttpVerticle extends AbstractVerticle {
     String authBearer = routingContext.request()
       .getHeader("Authorization");
 
-    Pattern pattern = Pattern.compile("Bearer TesT\\.(.*)\\.TesT");
-    Matcher m = pattern.matcher(authBearer);
-    if (m.find()) {
-      mongo.find("items", new JsonObject().put("owner",m.group(1)), res -> {
+    try {
+      String[] bearer = authBearer.split(" ");
+      verifier.verify(bearer[1]);
+      DecodedJWT jwt = JWT.decode(bearer[1]);
+
+      mongo.find("items", new JsonObject().put("owner", jwt.getClaim("user_id").asString()), res -> {
         routingContext.response()
           .setStatusCode(200)
           .putHeader("content-type", "application/json; charset=utf-8")
           .end(Json.encodePrettily(res.result()));
       });
-    } else {
+    } catch (Exception ex) {
+      ex.printStackTrace();
       routingContext.response()
         .setStatusCode(401)
         .setStatusMessage(AUTH_FAILED_MSG)
@@ -96,16 +111,19 @@ public class HttpVerticle extends AbstractVerticle {
     String authBearer = routingContext.request()
       .getHeader("Authorization");
 
-    Pattern pattern = Pattern.compile("Bearer TesT\\.(.*)\\.TesT");
-    Matcher m = pattern.matcher(authBearer);
-    if (m.find()) {
-      mongo.insert("items", reqItem.toJson().put("owner", m.group(1)), res -> {
+    try {
+      String[] bearer = authBearer.split(" ");
+      verifier.verify(bearer[1]);
+      DecodedJWT jwt = JWT.decode(bearer[1]);
+
+      mongo.insert("items", reqItem.toJson().put("owner", jwt.getClaim("user_id").asString()), res -> {
         routingContext.response()
           .setStatusCode(204)
           .setStatusMessage(CREATION_SUCCESS)
           .end();
       });
-    } else {
+    } catch (Exception ex) {
+      ex.printStackTrace();
       routingContext.response()
         .setStatusCode(401)
         .setStatusMessage(AUTH_FAILED_MSG)

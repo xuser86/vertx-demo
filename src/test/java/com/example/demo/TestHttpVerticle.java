@@ -2,15 +2,12 @@ package com.example.demo;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.opentest4j.AssertionFailedError;
 
 import java.net.ServerSocket;
 
@@ -98,24 +95,12 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("login", "user1@domain.com")
           .put("password", "SomePassword1"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              JsonObject body = response.bodyAsJsonObject();
-
-              assertThat(response.statusCode()).isEqualTo(200);
-
-              token1 = body.getString("token");
-
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(200);
+          JsonObject body = response.bodyAsJsonObject();
+          token1 = body.getString("token");
+          testContext.completeNow();
+        })));
   }
 
   @Test
@@ -128,24 +113,12 @@ public class TestHttpVerticle {
       .sendJsonObject(new JsonObject()
           .put("login", "user2@domain.com")
           .put("password", "Password2"),
-        ar -> {
-          if (ar.succeeded()) {
-            HttpResponse<Buffer> response = ar.result();
-            try {
-              JsonObject body = response.bodyAsJsonObject();
-
-              assertThat(response.statusCode()).isEqualTo(200);
-
-              token2 = body.getString("token");
-
-              testContext.completeNow();
-            }  catch (AssertionFailedError ex) {
-              testContext.failNow(ex);
-            }
-          } else {
-            testContext.failNow(ar.cause());
-          }
-        });
+        testContext.succeeding(response -> testContext.verify(() -> {
+          assertThat(response.statusCode()).isEqualTo(200);
+          JsonObject body = response.bodyAsJsonObject();
+          token2 = body.getString("token");
+          testContext.completeNow();
+        })));
   }
 
   @Test
@@ -228,6 +201,7 @@ public class TestHttpVerticle {
       .putHeader("Authorization", "Bearer " + token1)
       .send(testContext.succeeding(response -> testContext.verify(() -> {
         assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.bodyAsJsonArray().size()).isEqualTo(2);
         testContext.completeNow();
       })));
   }
@@ -242,6 +216,7 @@ public class TestHttpVerticle {
       .putHeader("Authorization", "Bearer " + token2)
       .send(testContext.succeeding(response -> testContext.verify(() -> {
         assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.bodyAsJsonArray().size()).isEqualTo(1);
         testContext.completeNow();
       })));
   }
